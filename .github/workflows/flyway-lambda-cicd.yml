@@ -25,4 +25,4 @@ jobs:
       - run: git tag v1.$GITHUB_RUN_NUMBER
       - run: mvn versions:set -D"nextSnapshot=true"
       - run: git commit -am "New snapshot version [skip ci]"
-      - run: git push --follow-tags
+      - run: git push origin --tags
