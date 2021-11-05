@@ -1,6 +1,6 @@
 ### Lambda Flyway Migrator
 
-A Java project designed to be executed as an AWS Lambda.Pperforms a 'Flyway migrate' on a specified database.
+A Java  project designed to be executed as an AWS Lambda.Pperforms a 'Flyway migrate' on a specified database.
 
 ### Instructions
 * Run `mvn clean install` on this project to build a 'jar with dependencies'
