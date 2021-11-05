@@ -22,7 +22,7 @@ jobs:
       - run: git config --global user.name "Lydtech Automation"
       - run: mvn versions:set -D"newVersion=1.$GITHUB_RUN_NUMBER"
       - run: git commit -am "New release version [skip ci]"
-      - run: git tag v1.$GITHUB_RUN_NUMBER
+      - run: git tag -a v1.$GITHUB_RUN_NUMBER -m "new release 1.$GITHUB_RUN_NUMBER"
       - run: mvn versions:set -D"nextSnapshot=true"
       - run: git commit -am "New snapshot version [skip ci]"
-      - run: git push origin --tags
+      - run: git push --follow-tags
