@@ -29,10 +29,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: v1.${{ env.GITHUB_RUN_NUMBER }}
-          release_name: v1.${{ env.GITHUB_RUN_NUMBER }}
+          tag_name: v1.${{ github.run_number }}
+          release_name: v1.${{ github.run_number }}
           body: |
-            Automated release v1.${{ env.GITHUB_RUN_NUMBER }}
+            Automated release v1.${{ github.run_number }}
           draft: false
           prerelease: false
       - name: Upload Release Asset
@@ -42,8 +42,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./target/flyway-lambda-1.${{ env.GITHUB_RUN_NUMBER }}-jar-with-dependencies.jar
-          asset_name: flyway-lambda-1.${ GITHUB_RUN_NUMBER }-jar-with-dependencies.jar
+          asset_path: ./target/flyway-lambda-1.${{ github.run_number }}-jar-with-dependencies.jar
+          asset_name: flyway-lambda-1.${ github.run_number }-jar-with-dependencies.jar
           asset_content_type: application/jar
       #- run: git tag -a v1.$GITHUB_RUN_NUMBER -m "new release 1.$GITHUB_RUN_NUMBER"
       - run: mvn versions:set -D"nextSnapshot=true"
