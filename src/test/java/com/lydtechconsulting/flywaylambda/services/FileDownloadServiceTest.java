@@ -38,7 +38,7 @@ class FileDownloadServiceTest {
 
         //assert the correct file has been copied to the temp directory
         String file = readString(Path.of(tempDir.toString(), "key1"), Charset.defaultCharset());
-        assertEquals(FILE_CONTENTS, file);
+        assertEquals("xyz", file);
     }
     
     private AmazonS3 createAmazonS3ClientMock() {
