@@ -18,3 +18,11 @@ jobs:
           cache: maven
       - name: Build with Maven
         run: mvn --batch-mode clean install
+      - run: git config --global user.email "ci_cd@lydtechconsuling.com"
+      - run: git config --global user.name "Lydtech Automation"
+      - run: mvn versions:set -D"newVersion=1.$GITHUB_RUN_NUMBER"
+      - run: git commit -am "New release version [skip ci]"
+      - run: git tag v1.$GITHUB_RUN_NUMBER
+      - run: mvn versions:set -D"nextSnapshot=true"
+      - run: git commit -am "New snapshot version [skip ci]"
+      - run: git push --follow-tags
