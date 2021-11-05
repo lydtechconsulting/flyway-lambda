@@ -6,7 +6,7 @@
 
     <groupId>com.lydtechconsulting</groupId>
     <artifactId>flyway-lambda</artifactId>
-    <version>1.10-SNAPSHOT</version>
+    <version>1.16</version>
     <properties>
         <java.version>11</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
