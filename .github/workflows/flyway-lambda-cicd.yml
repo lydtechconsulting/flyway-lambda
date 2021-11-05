@@ -22,7 +22,30 @@ jobs:
       - run: git config --global user.name "Lydtech Automation"
       - run: mvn versions:set -D"newVersion=1.$GITHUB_RUN_NUMBER"
       - run: git commit -am "New release version [skip ci]"
-      - run: git tag -a v1.$GITHUB_RUN_NUMBER -m "new release 1.$GITHUB_RUN_NUMBER"
+      - run:  mvn --batch-mode clean install -DskipTests
+      - name: Create Release
+          id: create_release
+          uses: actions/create-release@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+          with:
+            tag_name: v1.$GITHUB_RUN_NUMBER
+            release_name: v1.$GITHUB_RUN_NUMBER
+            body: |
+              Automated release v1.$GITHUB_RUN_NUMBER
+            draft: false
+            prerelease: false
+      - name: Upload Release Asset
+          id: upload-release-asset
+          uses: actions/upload-release-asset@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
+            asset_path: ./target/flyway-lambda-v1.${GITHUB_RUN_NUMBER}-jar-with-dependencies.jar
+            asset_name: flyway-lambda-v1.${GITHUB_RUN_NUMBER}-jar-with-dependencies.jar
+            asset_content_type: application/zip
+      #- run: git tag -a v1.$GITHUB_RUN_NUMBER -m "new release 1.$GITHUB_RUN_NUMBER"
       - run: mvn versions:set -D"nextSnapshot=true"
       - run: git commit -am "New snapshot version [skip ci]"
       - run: git push --follow-tags
