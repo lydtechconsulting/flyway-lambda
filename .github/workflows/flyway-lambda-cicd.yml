@@ -29,8 +29,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: v1.$GITHUB_RUN_NUMBER
-          release_name: v1.$GITHUB_RUN_NUMBER
+          tag_name: "v1.$GITHUB_RUN_NUMBER"
+          release_name: "v1.$GITHUB_RUN_NUMBER"
           body: |
             Automated release v1.$GITHUB_RUN_NUMBER
           draft: false
