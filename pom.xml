@@ -81,6 +81,11 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <scm>
+        <developerConnection>
+            scm:git:git@github.com:lydtechconsulting/flyway-lambda.git
+        </developerConnection>
+    </scm>
     <build>
         <plugins>
             <plugin>
