@@ -95,6 +95,16 @@
                         <manifest>
                             <mainClass>com.lydtechconsulting.flywaylambda.FlywayHandler</mainClass>
                         </manifest>
+                        <manifestSections>
+                            <manifestSection>
+                                <name>${project.name}</name>
+                                <manifestEntries>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>${project.artifactId}</artifactId>
+                                    <version>${project.version}</version>
+                                </manifestEntries>
+                            </manifestSection>
+                        </manifestSections>
                     </archive>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>

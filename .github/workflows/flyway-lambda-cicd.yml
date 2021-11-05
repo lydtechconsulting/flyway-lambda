@@ -43,9 +43,8 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./target/flyway-lambda-1.${{ github.run_number }}-jar-with-dependencies.jar
-          asset_name: flyway-lambda-1.${{ github.run_number }}-jar-with-dependencies.jar
+          asset_name: flyway-lambda-jar-with-dependencies.jar
           asset_content_type: application/jar
-      #- run: git tag -a v1.$GITHUB_RUN_NUMBER -m "new release 1.$GITHUB_RUN_NUMBER"
       - run: mvn versions:set -D"nextSnapshot=true"
       - run: git commit -am "New snapshot version [skip ci]"
       - run: git push --follow-tags
