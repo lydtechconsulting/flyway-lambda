@@ -42,7 +42,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./target/flyway-lambda-v1.${GITHUB_RUN_NUMBER}-jar-with-dependencies.jar
+          asset_path: ./target/flyway-lambda-1.${GITHUB_RUN_NUMBER}-jar-with-dependencies.jar
           asset_name: flyway-lambda-v1.${GITHUB_RUN_NUMBER}-jar-with-dependencies.jar
           asset_content_type: application/zip
       #- run: git tag -a v1.$GITHUB_RUN_NUMBER -m "new release 1.$GITHUB_RUN_NUMBER"
