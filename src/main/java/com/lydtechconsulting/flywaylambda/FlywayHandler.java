@@ -1,6 +1,5 @@
 package com.lydtechconsulting.flywaylambda;
 
-import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
@@ -9,7 +8,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import com.lydtechconsulting.flywaylambda.services.FileDownloadService;
 import com.lydtechconsulting.flywaylambda.services.FlywayMigrationService;
 
@@ -17,7 +15,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
 
@@ -42,7 +39,7 @@ public class FlywayHandler implements RequestHandler<Map<String, String>, String
         logger.log("bucketName: " + bucketName);
         logger.log("destination: " + flywayScriptsLocation);
         
-        String regionString = System.getProperty("AWS_REGION");
+        String regionString = System.getenv("AWS_REGION");
         requireNonNull(regionString, "AWS_REGION expected to be set");
         Regions region = Regions.fromName(regionString);
         

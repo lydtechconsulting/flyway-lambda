@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashMap;
 
+import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.eq;
@@ -41,7 +42,7 @@ class FlywayHandlerTest {
     }
 
     @Test
-    public void should_run_successfully() {
+    public void should_run_successfully() throws Exception {
         Context context = mock(Context.class);
         LambdaLogger logger = mock(LambdaLogger.class);
         when(context.getLogger()).thenReturn(logger);
@@ -50,7 +51,9 @@ class FlywayHandlerTest {
         event.put("bucket_name", "myBucket");
         System.setProperty("AWS_REGION", "eu-west-1");
 
-        String response = flywayHandler.handleRequest(event, context);
+        String response = withEnvironmentVariable("AWS_REGION", "eu-west-2")
+                .execute(() -> flywayHandler.handleRequest(event, context));
+
 
         assertEquals("200 OK", response);
 
@@ -85,7 +88,7 @@ class FlywayHandlerTest {
         event.put("bucket_name", "myBucket");
 
         try {
-            //No region as a system property
+            //No region as an env var
             flywayHandler.handleRequest(event, context);
             fail("expected nullPointerException");
         } catch (NullPointerException e) {
@@ -97,7 +100,7 @@ class FlywayHandlerTest {
     }
     
     @Test
-    public void should_fail_when_region_invalid_region_present() {
+    public void should_fail_when_region_invalid_region_present() throws Exception {
         Context context = mock(Context.class);
         LambdaLogger logger = mock(LambdaLogger.class);
         when(context.getLogger()).thenReturn(logger);
@@ -106,8 +109,8 @@ class FlywayHandlerTest {
         event.put("bucket_name", "myBucket");
 
         try {
-            System.setProperty("AWS_REGION", "invalid");
-            flywayHandler.handleRequest(event, context);
+            withEnvironmentVariable("AWS_REGION", "invalid")
+                    .execute(() -> flywayHandler.handleRequest(event, context));
             fail("expected IllegalArgumentException");
         } catch (IllegalArgumentException e) {
             assertEquals("Cannot create enum from invalid value!", e.getMessage());
