@@ -2,7 +2,6 @@ package com.lydtechconsulting.flywaylambda;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
-import com.amazonaws.services.s3.AmazonS3;
 import com.lydtechconsulting.flywaylambda.services.FileDownloadService;
 import com.lydtechconsulting.flywaylambda.services.FlywayMigrationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,12 +11,16 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
 import java.util.HashMap;
 
 import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.mock;
@@ -49,16 +52,16 @@ class FlywayHandlerTest {
 
         HashMap<String, String> event = new HashMap<>();
         event.put("bucket_name", "myBucket");
-        System.setProperty("AWS_REGION", "eu-west-1");
+        event.put("secret_name", "mySecretName");
 
-        String response = withEnvironmentVariable("AWS_REGION", "eu-west-2")
+        String response = withEnvironmentVariable("AWS_REGION", "eu-west-1")
                 .execute(() -> flywayHandler.handleRequest(event, context));
 
 
         assertEquals("200 OK", response);
 
-        verify(fileDownloadService).copy(eq(logger), ArgumentMatchers.any(AmazonS3.class), eq("myBucket"), matches("/tmp/sqlFiles_.*"));
-        verify(flywayMigrationService).performMigration(eq(logger), matches("^filesystem:///tmp/sqlFiles_.*"));
+        verify(fileDownloadService).copy(eq(logger), any(S3Client.class), eq("myBucket"), matches("/tmp/sqlFiles_.*"));
+        verify(flywayMigrationService).performMigration(eq(logger), any(SecretsManagerClient.class), matches("^filesystem:///tmp/sqlFiles_.*"), matches("mySecretName"));
     }
 
     @Test
@@ -86,6 +89,7 @@ class FlywayHandlerTest {
 
         HashMap<String, String> event = new HashMap<>();
         event.put("bucket_name", "myBucket");
+        event.put("secret_name", "mySecretName");
 
         try {
             //No region as an env var
@@ -95,27 +99,6 @@ class FlywayHandlerTest {
             assertEquals("AWS_REGION expected to be set", e.getMessage());
         }
         
-        verifyNoInteractions(fileDownloadService);
-        verifyNoInteractions(flywayMigrationService);
-    }
-    
-    @Test
-    public void should_fail_when_region_invalid_region_present() throws Exception {
-        Context context = mock(Context.class);
-        LambdaLogger logger = mock(LambdaLogger.class);
-        when(context.getLogger()).thenReturn(logger);
-
-        HashMap<String, String> event = new HashMap<>();
-        event.put("bucket_name", "myBucket");
-
-        try {
-            withEnvironmentVariable("AWS_REGION", "invalid")
-                    .execute(() -> flywayHandler.handleRequest(event, context));
-            fail("expected IllegalArgumentException");
-        } catch (IllegalArgumentException e) {
-            assertEquals("Cannot create enum from invalid value!", e.getMessage());
-        }
-
         verifyNoInteractions(fileDownloadService);
         verifyNoInteractions(flywayMigrationService);
     }

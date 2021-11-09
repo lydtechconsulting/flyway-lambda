@@ -1,14 +1,17 @@
 package com.lydtechconsulting.flywaylambda.services;
 
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ListObjectsV2Result;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.List;
 
 public class FileDownloadService {
@@ -19,24 +22,35 @@ public class FileDownloadService {
      * @param s3BucketName name of s3 bucket to pull files from
      * @param flywayScriptsLocation path to download files to
      */
-    public void copy(LambdaLogger logger, AmazonS3 s3Client, String s3BucketName, String flywayScriptsLocation) {
+    public void copy(LambdaLogger logger, S3Client s3Client, String s3BucketName, String flywayScriptsLocation) {
         logger.log("Will copy files from " + s3BucketName + " to " + flywayScriptsLocation);
 
-        ListObjectsV2Result result = s3Client.listObjectsV2(s3BucketName);
-        List<S3ObjectSummary> objects = result.getObjectSummaries();
-        for (S3ObjectSummary os : objects) {
-            logger.log("* " + os.getKey());
-            S3Object o = s3Client.getObject(s3BucketName, os.getKey());
-            S3ObjectInputStream s3is = o.getObjectContent();
+        ListObjectsRequest request = ListObjectsRequest
+                .builder()
+                .bucket(s3BucketName)
+                .build();
+
+        ListObjectsResponse response = s3Client.listObjects(request);
+        List<S3Object> objects = response.contents();
+        for (S3Object obj : objects) {
+            String key = obj.key();
+            logger.log("* " + key);
+            GetObjectRequest objectRequest = GetObjectRequest
+                    .builder()
+                    .key(key)
+                    .bucket(s3BucketName)
+                    .build();
+            ResponseBytes<GetObjectResponse> objectAsBytes = s3Client.getObjectAsBytes(objectRequest);
+            InputStream inputStream = objectAsBytes.asInputStream();
             try {
-                FileOutputStream fos = new FileOutputStream(new File(flywayScriptsLocation, os.getKey()));
+                FileOutputStream fos = new FileOutputStream(new File(flywayScriptsLocation, key));
 
                 byte[] read_buf = new byte[1024];
                 int read_len = 0;
-                while ((read_len = s3is.read(read_buf)) > 0) {
+                while ((read_len = inputStream.read(read_buf)) > 0) {
                     fos.write(read_buf, 0, read_len);
                 }
-                s3is.close();
+                inputStream.close();
                 fos.close();
             } catch (Exception e) {
                 throw new RuntimeException("Problem downloading file", e);

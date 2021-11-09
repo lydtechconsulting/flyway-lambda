@@ -1,15 +1,15 @@
 package com.lydtechconsulting.flywaylambda;
 
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.lydtechconsulting.flywaylambda.services.FileDownloadService;
 import com.lydtechconsulting.flywaylambda.services.FlywayMigrationService;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,21 +35,28 @@ public class FlywayHandler implements RequestHandler<Map<String, String>, String
             throw new NullPointerException("event must have bucket_name field");
         }
         String bucketName = event.get("bucket_name");
+        if (!event.containsKey("secret_name")) {
+            throw new NullPointerException("event must have secret_name field");
+        }
+        String secretName = event.get("secret_name");
         String flywayScriptsLocation = "/tmp/sqlFiles_" + System.currentTimeMillis(); 
         logger.log("bucketName: " + bucketName);
         logger.log("destination: " + flywayScriptsLocation);
         
         String regionString = System.getenv("AWS_REGION");
         requireNonNull(regionString, "AWS_REGION expected to be set");
-        Regions region = Regions.fromName(regionString);
+        Region region = Region.of(regionString);
         
         createDirectory(flywayScriptsLocation);
-        final AmazonS3 s3Client = AmazonS3ClientBuilder
-                .standard()
-                .withRegion(region) 
+        final S3Client s3Client = S3Client.builder()
+                .region(region) 
                 .build();
         fileDownloadService.copy(logger, s3Client, bucketName, flywayScriptsLocation);
-        flywayMigrationService.performMigration(logger, "filesystem://" + flywayScriptsLocation);
+
+        SecretsManagerClient secretsClient = SecretsManagerClient.builder()
+                .region(region)
+                .build();
+        flywayMigrationService.performMigration(logger, secretsClient, "filesystem://" + flywayScriptsLocation, secretName);
 
         return "200 OK";
     }
